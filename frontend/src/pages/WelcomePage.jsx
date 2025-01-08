@@ -1,8 +1,11 @@
 import React from 'react'
+import Heading from '../components/Heading'
 
 function WelcomePage() {
   return (
-    <div>WelcomePage</div>
+    <div>
+      <Heading>Welcome</Heading>
+    </div>
   )
 }
 
