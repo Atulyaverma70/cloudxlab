@@ -3,10 +3,12 @@ import dotenv from 'dotenv'
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import cors from 'cors';
 
 dotenv.config();
 const app = express();
 app.use(express.json());
+app.use(cors());
 const port = process.env.PORT || 3000;
 const prisma = new PrismaClient();
 
@@ -15,13 +17,8 @@ const signupSchema = z.object({
     lastName: z.string().min(1, "Last name is required").max(50, "Last name must be at most 50 characters"),
     email: z.string().email("Invalid email address"),
     password: z.string()
-      .min(8, "Password must be at least 8 characters")
-      .max(50, "Password must be at most 50 characters")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number")
-      .regex(/[\W_]/, "Password must contain at least one special character"),
-    phoneNumber: z.string().regex(/^\+91\s[6-9]\d{9}$/, "Phone number must be in the format '+91 10-digit-number'"),
+      .min(8, "Password must be at least 8 characters"),
+    phoneNumber: z.string().regex(/^[0-9]{10}$/, "Phone number must be in the format '10-digit-number'"),
 });
 
 const loginSchema = z.object({
@@ -36,7 +33,8 @@ app.post('/accounts/signup', async function(req, res){
     const validation = signupSchema.safeParse(data);
     if(!validation.success){
         res.status(400).json({
-            msg: "validation failed"
+            msg: "validation failed",
+            errors: validation.error.errors,
         })
         return;
     }
@@ -76,7 +74,8 @@ app.use('/accounts/login', async function(req, res){
     const validation = loginSchema.safeParse(data);
     if(!validation.success){
         res.status(400).json({
-            msg: "Invalid input"
+            msg: "Invalid input",
+            errors: validation.error.errors,
         })
         return;
     }
